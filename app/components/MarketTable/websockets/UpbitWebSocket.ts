@@ -1,4 +1,4 @@
-import { drawPrice, drawKimp } from "../utils/drawCanvas";
+import { drawPrice, drawKimp, drawPrevDayDiff } from "../utils/drawTable";
 
 const upbitWebSocketUrl = "wss://api.upbit.com/websocket/v1";
 
@@ -39,6 +39,11 @@ export function UpbitWebSocket(codes: string[], market: any) {
           marketMap[symbol].upbit,
           marketMap[symbol].binance,
           marketMap.exchangeRate.basePrice
+        );
+        drawPrevDayDiff(
+          index,
+          marketMap[symbol].upbit,
+          marketMap[symbol].prevClosingPrice
         );
       }
 

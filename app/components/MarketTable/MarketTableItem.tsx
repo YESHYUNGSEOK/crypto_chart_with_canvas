@@ -1,14 +1,8 @@
 "use client";
 
 import styled from "styled-components";
-import Image from "next/image";
 import { useEffect } from "react";
-import {
-  drawSymbol,
-  drawName,
-  drawKimp,
-  drawPrice,
-} from "@/app/components/MarketTable/utils/drawCanvas";
+import { drawRow } from "@/app/components/MarketTable/utils/drawTable";
 
 export function MarketTableItem({
   index,
@@ -27,23 +21,16 @@ export function MarketTableItem({
 }) {
   const symbol = crypto.market.replace("KRW-", ""); // ex.KRW-BTC -> BTC
   marketMap[symbol].index = index;
+  marketMap[symbol].prevClosingPrice = crypto.prev_closing_price;
 
-  // https://www.geeksforgeeks.org/how-to-sharpen-blurry-text-in-html5-canvas/
   useEffect(() => {
-    drawSymbol(index, symbol);
-    drawName(index, symbol, crypto.korean_name);
-    drawPrice(index, tradePrice, tradePrice, exchangeRate, "UPBIT");
-    drawPrice(
+    drawRow(
       index,
+      symbol,
+      crypto.korean_name,
+      tradePrice,
       binanceTradePrice,
-      crypto.trade_price,
-      exchangeRate,
-      "BINANCE"
-    );
-    drawKimp(
-      index,
-      crypto.trade_price,
-      crypto.binance_trade_price,
+      crypto.prev_closing_price,
       exchangeRate
     );
   }, []);
@@ -54,32 +41,29 @@ export function MarketTableItem({
         <CellNameStyled>
           <canvas id={`${index}-SYMBOL`} />
           <NameContainerStyled>
-            <div id={`${index}-KOREAN-NAME`} />
-            <div id={`${index}-SYMBOL-NAME`} />
+            <p id={`${index}-KOREAN-NAME`} />
+            <p id={`${index}-SYMBOL-NAME`} />
           </NameContainerStyled>
         </CellNameStyled>
       </CellStyled>
       <CellStyled>
         <CellPriceStyled>
-          <div>
-            <canvas id={`${index}-UPBIT-PRICE`} />
-          </div>
-          <div>
-            <canvas id={`${index}-BINANCE-PRICE`} />
-          </div>
+          <p id={`${index}-UPBIT-PRICE`} />
+          <p id={`${index}-BINANCE-PRICE`} />
         </CellPriceStyled>
       </CellStyled>
       <CellStyled>
         <CellKimpStyled>
-          <div>
-            <canvas id={`${index}-KIMP-RATIO`} />
-          </div>
-          <div>
-            <canvas id={`${index}-KIMP-DIFF`} />
-          </div>
+          <p id={`${index}-KIMP-RATIO`} />
+          <p id={`${index}-KIMP-DIFF`} />
         </CellKimpStyled>
       </CellStyled>
-      <CellStyled>거래대금(24H)</CellStyled>
+      <CellStyled>
+        <CellPrevDayPriceStyled>
+          <p id={`${index}-PREV-DAY-RATIO`} />
+          <p id={`${index}-PREV-DAY-DIFF`} />
+        </CellPrevDayPriceStyled>
+      </CellStyled>
       <CellStyled>52주 최고가</CellStyled>
       <CellStyled>52주 최저가</CellStyled>
       <CellStyled>전일 종가</CellStyled>
@@ -87,7 +71,12 @@ export function MarketTableItem({
   );
 }
 
-const RowStyled = styled.tr``;
+const RowStyled = styled.tr`
+  &:hover {
+    background-color: #c6c4c4;
+  }
+  transition: 0.3s all ease;
+`;
 
 const CellStyled = styled.td`
   padding: 5px;
@@ -105,38 +94,51 @@ const NameContainerStyled = styled.div`
   display: flex;
   flex-direction: column;
   padding: 0 10px;
-  canvas {
-    height: 16.5px;
-    width: 140px;
+  p {
+    &:nth-child(2) {
+      color: var(--gray-color);
+    }
   }
 `;
 
 const CellPriceStyled = styled.div`
   display: flex;
   flex-direction: column;
-  div:nth-child(2) {
-    color: var(--gray-color);
-  }
-  div {
-    height: 16.5px;
-  }
-  canvas {
-    height: 16.5px;
-    width: 90px;
+  p {
+    text-align: right;
+    min-width: 70px;
+    &:nth-child(2) {
+      color: var(--gray-color);
+    }
   }
 `;
 
 const CellKimpStyled = styled.div`
   display: flex;
   flex-direction: column;
-  div:nth-child(2) {
-    color: var(--gray-color);
+  p {
+    text-align: right;
+    min-width: 70px;
+    &:first-child {
+      color: var(--rise-color);
+    }
+    &:nth-child(2) {
+      color: var(--gray-color);
+    }
   }
-  div {
-    height: 16.5px;
-  }
-  canvas {
-    height: 16.5px;
-    width: 90px;
+`;
+
+const CellPrevDayPriceStyled = styled.div`
+  display: flex;
+  flex-direction: column;
+  p {
+    text-align: right;
+    min-width: 70px;
+    &:first-child {
+      color: var(--rise-color);
+    }
+    &:nth-child(2) {
+      color: var(--gray-color);
+    }
   }
 `;

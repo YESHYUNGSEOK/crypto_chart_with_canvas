@@ -1,4 +1,4 @@
-import { drawPrice, drawKimp } from "../utils/drawCanvas";
+import { drawPrice, drawKimp } from "../utils/drawTable";
 
 const binanceWebSocketUrl = "wss://stream.binance.com:9443/ws";
 
@@ -20,6 +20,7 @@ export function BinanceWebSocket(codes: string[], marketMap: any) {
     if (!crypto.s) return;
 
     const [symbol, price] = [crypto.s.slice(0, -4), crypto.c];
+
     const index = marketMap[symbol].index;
     marketMap[symbol].binance = price;
 

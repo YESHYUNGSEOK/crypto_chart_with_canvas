@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import styled from "styled-components";
 
@@ -8,10 +8,10 @@ import { getMarket } from "@/app/components/MarketTable/api/getMarket";
 import { UpbitWebSocket } from "@/app/components/MarketTable/websockets/UpbitWebSocket";
 import { BinanceWebSocket } from "@/app/components/MarketTable/websockets/\bBinanceWebSocket";
 import { MarketTableItem } from "@/app/components/MarketTable/MarketTableItem";
-import { drawKimp, drawName, drawPrice, drawSymbol } from "./utils/drawCanvas";
+import { drawRow } from "./utils/drawTable";
+import { BithumbWebSocket } from "./websockets/BithumbWebSocket";
 
 export default function MarketTable() {
-  const [, forceUpdate] = useState({});
   const { data: market, isLoading } = useQuery({
     queryKey: ["market"],
     queryFn: getMarket,
@@ -20,9 +20,7 @@ export default function MarketTable() {
 
   useEffect(() => {
     if (!market) return;
-    console.log(market);
     const orderByKimp = setInterval(() => {
-      console.time("orderByKimp");
       market.cryptos.sort((a: any, b: any) => {
         const keyA = a.market.replace("KRW-", "");
         const keyB = b.market.replace("KRW-", "");
@@ -56,33 +54,19 @@ export default function MarketTable() {
         if (i !== market.marketMap[symbol].index) {
           market.marketMap[symbol].index = i;
           function drawItem() {
-            drawSymbol(i, symbol);
-            drawName(i, symbol, market.cryptos[i].korean_name);
-            drawPrice(
+            drawRow(
               i,
-              market.marketMap[symbol].upbit,
-              market.marketMap[symbol].upbit,
-              market.marketMap.exchangeRate.basePrice,
-              "UPBIT"
-            );
-            drawPrice(
-              i,
-              market.marketMap[symbol].binance,
-              market.marketMap[symbol].upbit,
-              market.marketMap.exchangeRate.basePrice,
-              "BINANCE"
-            );
-            drawKimp(
-              i,
+              symbol,
+              market.cryptos[i].korean_name,
               market.marketMap[symbol].upbit,
               market.marketMap[symbol].binance,
+              market.cryptos[i].prev_closing_price,
               market.marketMap.exchangeRate.basePrice
             );
           }
           requestAnimationFrame(drawItem);
         }
       }
-      console.timeEnd("orderByKimp");
     }, 500);
 
     const upbitWebSocket = UpbitWebSocket(market.upbitCodes, market);
@@ -90,10 +74,12 @@ export default function MarketTable() {
       market.binanceCodes,
       market.marketMap
     );
+    const bitthumbWebSocket = BithumbWebSocket();
 
     return () => {
       upbitWebSocket.close();
       binanceWebSocket.close();
+      bitthumbWebSocket.close();
     };
   }, [market]);
 
@@ -108,10 +94,10 @@ export default function MarketTable() {
           <th>코인</th>
           <th>현재가</th>
           <th>김프</th>
+          <th>전일대비</th>
           <th>UPBIT</th>
           <th>UPBIT</th>
           <th>UPBIT</th>
-          <th>전일 대비</th>
         </tr>
       </TheadStyled>
       <tbody>
